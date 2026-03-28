@@ -10,6 +10,8 @@ void main() async{
    await Hive.initFlutter();
    Hive.registerAdapter(TaskAdapter());
    var box=await Hive.openBox('tasksBox');
+   var box2= await Hive.openBox('sync-datas');
+   
    
   runApp(const MyApp());
 }

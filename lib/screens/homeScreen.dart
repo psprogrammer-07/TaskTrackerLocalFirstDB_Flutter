@@ -1,8 +1,13 @@
+import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:crud_elf/db/dataBaseServices.dart';
-import 'package:crud_elf/services/apiCalls.dart';
+import 'package:crud_elf/db/syncOperations.dart';
+import 'package:crud_elf/services/engine.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'dart:math';
+
 
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
@@ -13,8 +18,11 @@ class Homescreen extends StatefulWidget {
 
 class _HomescreenState extends State<Homescreen> {
 
-  Apicalls ac= Apicalls();
+ 
   Databaseservices db=Databaseservices();
+  Engine eg=Engine();
+
+  late StreamSubscription<List<ConnectivityResult>> _networkSubscription;
 
   Future<List<dynamic>>? myTasksFuture;
 
@@ -31,26 +39,42 @@ class _HomescreenState extends State<Homescreen> {
   }
 
 @override
-  void initState() {
+  void initState()  {
     // TODO: implement initState
     super.initState();
-    if (Hive.box('tasksBox').get("mainData") == null) {
+    
+
+    eg.mainSync();
+    
+    
+    if (Hive.box('tasksBox').get("mainData")==null) {
     db.loadInitialData();
   } else {
-    db.loadTask();
-  }
-    myTasksFuture=  ac.getUserTasks();
+  
+    
+     db.loadTaskToLocalDB();
+  
   }
 
-    void getData({int? index,String? category,String? task,String? description}) async{
+  
+    
+  }
 
-      if(index!=null){
+int generateUniqueId() {
+  final now = DateTime.now().millisecondsSinceEpoch;
+  int id=now % 4294967295;
+  print("The generated task id:${id} ");
+  return id; 
+}
+
+    void getData({int? taskid,String? category,String? task,String? description}) async{
+
+      if(taskid!=null){
         _categoryText.text=category??"";
         _taskText.text=task??"";
         _descText.text=description??"";
       }
-      
-
+    
       showDialog(
 
         context: context,
@@ -75,12 +99,12 @@ class _HomescreenState extends State<Homescreen> {
                   ),
                   TextField(controller: _taskText,
                   decoration: InputDecoration(
-                  labelText: "Task Category",
+                  labelText: "Task Name",
                   border: OutlineInputBorder(), 
                   ),),
                   TextField(controller: _descText,
                   decoration: InputDecoration(
-                  labelText: "Task Category",
+                  labelText: "discription",
                   border: OutlineInputBorder(), 
                   ),),
                 ],
@@ -92,19 +116,23 @@ class _HomescreenState extends State<Homescreen> {
             actions: [
               TextButton(onPressed: ()async{
 
-                if(index!=null){
-                  await ac.updateTask(_categoryText.text.trim(), _taskText.text.trim(), _descText.text.trim(), index);
-                }else{
-                  await ac.postTask(_categoryText.text.trim(), _taskText.text.trim(), _descText.text.trim());
-                }
+               if(taskid==null){
+                 //db.addTask(Task(taskId:generateUniqueId() , category: _categoryText.text.trim(), task: _taskText.text.trim(), description: _descText.text.trim()));
+                 eg.AddNewTask(Task(taskId:generateUniqueId() , category: _categoryText.text.trim(), task: _taskText.text.trim(), description: _descText.text.trim()));
+               }
+               else{
 
+               //   db.updateTask(Task(taskId: taskid , category: _categoryText.text.trim(), task: _taskText.text.trim(), description: _descText.text.trim()));
+                  eg.UpdateTask(Task(taskId: taskid , category: _categoryText.text.trim(), task: _taskText.text.trim(), description: _descText.text.trim()));
+
+               }
 
                 
                Navigator.pop(dialogContext); 
 
                 // 3. REFRESH THE SCREEN HERE! (After the data is saved and dialog is closed)
               setState(() {
-                myTasksFuture = ac.getUserTasks(); 
+                
               });
                 // 4. Clear the text boxes so they are empty for the next time
                 _categoryText.clear();
@@ -159,12 +187,8 @@ class _HomescreenState extends State<Homescreen> {
       ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: ()async{
-          
-          
-                  getData();
-                
-
+        onPressed: (){
+                getData();
         },
 
         child: Icon(Icons.add),
@@ -207,18 +231,16 @@ class _HomescreenState extends State<Homescreen> {
               Row(
                 children: [
                   IconButton(onPressed:() async{
-                setState(() {
-                   ac.deleteTask(taskId);
-                });
-                setState(() {
-                  myTasksFuture=ac.getUserTasks();
-                });
+
+                   
+                    eg.DeleteTask(taskId);
+                
               }, icon: Icon(Icons.delete)),
 
               IconButton(onPressed:() async{
-                setState(() {
-                   getData(index:index,category: category,task: task,description: description);
-                });
+                
+                   getData(taskid:taskId,category: category,task: task,description: description);
+                
               }, icon: Icon(Icons.settings)),
                 ],
               )

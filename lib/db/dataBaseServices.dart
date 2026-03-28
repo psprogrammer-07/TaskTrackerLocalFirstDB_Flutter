@@ -1,3 +1,4 @@
+import 'package:crud_elf/db/syncOperations.dart';
 import 'package:hive/hive.dart';
 
 class Task {
@@ -5,18 +6,29 @@ class Task {
   String category;
   String task; // You named it 'task' here
   String description;
-  bool isSynced;
+
+ // {"taskId":1,"category":"1111","task":"111","description":"1111"}
+  
 
   Task({
     required this.taskId,
     required this.category,
     required this.task,
     required this.description,
-    this.isSynced = false,
+  
   });
+
+  factory Task.fromJson(Map<String, dynamic> json) {
+    return Task(
+      taskId: json["taskId"],
+      category: json["category"],
+      task: json["task"],
+      description: json["description"],
+    );
+  }
 }
 
-class TaskAdapter extends TypeAdapter<Task> {
+   class TaskAdapter extends TypeAdapter<Task> {
   @override
   final int typeId = 0;
 
@@ -27,7 +39,6 @@ class TaskAdapter extends TypeAdapter<Task> {
       category: reader.read(),
       task: reader.read(),
       description: reader.read(),
-      isSynced: reader.read(),
     );
   }
 
@@ -37,18 +48,65 @@ class TaskAdapter extends TypeAdapter<Task> {
     writer.write(obj.category);
     writer.write(obj.task);
     writer.write(obj.description);
-    writer.write(obj.isSynced);
   }
 }
 
 class Databaseservices {
+
+  Databaseservices._privateConstructor();
+
+  static final Databaseservices instance = Databaseservices._privateConstructor();
+
+  factory Databaseservices() {
+    return instance;
+  }
+
   List<Task> localDb = []; 
-  
-  
-  final _mybox = Hive.box("tasksBox"); 
 
   
-  void loadTask() {
+  
+  final _mybox = Hive.box("tasksBox");
+  
+   
+  Future<void> addTask(Task newTask)async {
+    loadTaskToLocalDB();
+    localDb.add(newTask);
+    updateDatabase();
+  }
+
+  void updateTask(Task newTask){
+    for(Task data in localDb){
+      if(data.taskId==newTask.taskId){
+        data.category=newTask.category;
+        data.task=newTask.task;
+        data.description=newTask.description;
+
+        break;
+
+      }
+    }
+     updateDatabase();
+     
+     loadTaskToLocalDB();
+
+  }
+
+  void deleteTask(int taskId){
+    for(Task data in localDb){
+
+      if(data.taskId==taskId){
+        localDb.remove(data);
+        break;
+      }
+
+    }
+    updateDatabase();
+    loadTaskToLocalDB();
+
+  }
+
+  
+  void loadTaskToLocalDB() {
    
     List<dynamic> rawData = _mybox.get("mainData", defaultValue: []);
     localDb = rawData.cast<Task>(); 
@@ -65,4 +123,6 @@ class Databaseservices {
   void updateDatabase() {
     _mybox.put("mainData", localDb);
   }
+
+  
 }
