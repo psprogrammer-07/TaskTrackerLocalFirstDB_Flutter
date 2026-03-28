@@ -117,24 +117,16 @@ int generateUniqueId() {
               TextButton(onPressed: ()async{
 
                if(taskid==null){
-                 //db.addTask(Task(taskId:generateUniqueId() , category: _categoryText.text.trim(), task: _taskText.text.trim(), description: _descText.text.trim()));
-                 eg.AddNewTask(Task(taskId:generateUniqueId() , category: _categoryText.text.trim(), task: _taskText.text.trim(), description: _descText.text.trim()));
+                  eg.AddNewTask(Task(taskId:generateUniqueId() , category: _categoryText.text.trim(), task: _taskText.text.trim(), description: _descText.text.trim()));
                }
                else{
 
-               //   db.updateTask(Task(taskId: taskid , category: _categoryText.text.trim(), task: _taskText.text.trim(), description: _descText.text.trim()));
-                  eg.UpdateTask(Task(taskId: taskid , category: _categoryText.text.trim(), task: _taskText.text.trim(), description: _descText.text.trim()));
+               eg.UpdateTask(Task(taskId: taskid , category: _categoryText.text.trim(), task: _taskText.text.trim(), description: _descText.text.trim()));
 
                }
 
                 
                Navigator.pop(dialogContext); 
-
-                // 3. REFRESH THE SCREEN HERE! (After the data is saved and dialog is closed)
-              setState(() {
-                
-              });
-                // 4. Clear the text boxes so they are empty for the next time
                 _categoryText.clear();
                 _taskText.clear();
                 _descText.clear();

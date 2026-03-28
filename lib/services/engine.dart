@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:crud_elf/db/dataBaseServices.dart';
 import 'package:crud_elf/db/syncOperations.dart';
@@ -108,9 +107,7 @@ class Engine {
           await so.getTasks();
 
        
-        //await so.addTaskToBackend();
-        //await so.syncUpdatedData();
-        //await so.SyncDeletedTask();
+        
         
         
         

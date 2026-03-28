@@ -4,10 +4,8 @@ import 'package:hive/hive.dart';
 class Task {
   int taskId;
   String category;
-  String task; // You named it 'task' here
+  String task; 
   String description;
-
- // {"taskId":1,"category":"1111","task":"111","description":"1111"}
   
 
   Task({

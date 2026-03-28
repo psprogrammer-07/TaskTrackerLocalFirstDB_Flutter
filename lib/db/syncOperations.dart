@@ -30,24 +30,20 @@ class Syncoperations {
 
           List<Task> localTasks= db.localDb;
 
-          for(var receivedTask in data){
-              bool isFinded=false;
-              
-            for(Task localTask in localTasks ){
-               if(localTask.taskId== receivedTask['taskId']){
-                 
-                 isFinded=true;
-                 break;
-               }
-            }
-            if(!isFinded){
-                Task newTask=Task.fromJson(receivedTask);
-                 db.localDb.add(newTask);
-                 isFinded=true;
-                 db.updateDatabase();
-            }
+          for (var receivedTask in data) {
+            int index = localTasks.indexWhere(
+              (t) => t.taskId == receivedTask['taskId'],
+            );
 
+            if (index != -1) {
+              localTasks[index] = Task.fromJson(receivedTask);
+            } else {
+              localTasks.add(Task.fromJson(receivedTask));
+            }
           }
+
+          db.updateDatabase();
+
 
         }else{
           print("Error on getTask api status code");
